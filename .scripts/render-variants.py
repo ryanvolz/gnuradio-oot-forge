@@ -123,9 +123,9 @@ def combine_platform_variants(platform_variants):
             selector_vals = []
             for k in platform_variants:
                 # all platforms need to have a value so jinja can be rendered
-                # before recipe is processed, so insert "" for any platforms
+                # before recipe is processed, so insert None for any platforms
                 # that don't currently have a value
-                value = platform_vals.get(k, "")
+                value = platform_vals.get(k, None)
                 selector_vals.append(
                     {
                         "if": f"target_platform == '{k}'",
