@@ -2,10 +2,10 @@ import argparse
 import collections
 import difflib
 import json
+import logging
 import os
 import subprocess
 import tempfile
-import traceback
 from pathlib import Path
 
 import rich.console
@@ -13,10 +13,12 @@ import rich.markdown
 import tomllib
 import yaml
 
+logger = logging.getLogger(__name__)
+
 
 def replace_context(recipe_str, new_context_line):
     """Replace context line in recipe_str."""
-    variable, value = new_context_line.strip().split(": ")
+    variable, _value = new_context_line.strip().split(": ")
     lines = recipe_str.splitlines()
     for i, line in enumerate(lines):
         if line.strip().startswith(f"{variable}:"):
@@ -55,7 +57,7 @@ def collapse_variant_matrix(variants, extra_ignored_keys=None):
 
     # convert variant dictionaries to sets of (key, value) tuples
     # and reduce the variants by combining those that are subsets/supersets
-    common_variant_set = set((k, v) for k, v in common_values.items())
+    common_variant_set = set(common_values.items())
     variant_sets = []
     for variant in variants:
         variant_set = common_variant_set.copy()
@@ -87,6 +89,7 @@ def collapse_variant_matrix(variants, extra_ignored_keys=None):
 
     # collapse into a single dict with tuple values for the unique keys
     collapsed_variant = common_values.copy()
+
     for key in zip_keys:
         collapsed_variant[key] = tuple(uv[key] for uv in unique_variants)
 
@@ -111,7 +114,12 @@ def combine_platform_variants(platform_variants):
         unique_vals = set(platform_vals.values())
         if len(platform_vals) == num_platforms and len(unique_vals) == 1:
             # all platforms have the same value, so use that
-            combined_variant[key] = unique_vals.pop()
+            common_val = unique_vals.pop()
+            # wrap string values in single-element list so YAML output is
+            # always a list of items for each variant key
+            if isinstance(common_val, str):
+                common_val = [common_val]
+            combined_variant[key] = common_val
         else:
             # platforms have different values, or some platforms don't have the key
             selector_vals = []
@@ -178,7 +186,7 @@ def render_variants(recipe_path, target_platforms, bump_build=False, verbose=Fal
         if not isinstance(metadatas, list):
             metadatas = [metadatas]
         variants = [m["build_configuration"]["variant"] for m in metadatas]
-        output_names = set(m["recipe"]["package"]["name"] for m in metadatas)
+        output_names = {m["recipe"]["package"]["name"] for m in metadatas}
         extra_ignored_keys = [n.replace("-", "_") for n in output_names]
         if variants:
             platform_variants[target_platform] = collapse_variant_matrix(
@@ -268,7 +276,9 @@ def main():
             if manifest_path.exists():
                 break
         else:
-            print("Cannot find pixi.toml manifest file! Specify --manifest-path")
+            logger.warning(
+                "Cannot find pixi.toml manifest file! Specify --manifest-path"
+            )
     else:
         manifest_path = args.manifest_path.resolve()
 
@@ -289,8 +299,7 @@ def main():
             if diff is not None:
                 diffs.append(diff)
         except Exception:
-            tb = traceback.format_exc()
-            print(f"Error processing {recipe_path}: {tb}")
+            logger.exception(f"Error processing {recipe_path}")
 
     summary = ""
     if diffs:

@@ -46,7 +46,8 @@ c_stdlib_version:
   then: '11.0'
 - if: target_platform == 'osx-arm64'
   then: '11.0'
-channel_targets: gnuradio-oot-forge main
+channel_targets:
+- gnuradio-oot-forge main
 cxx_compiler:
 - if: target_platform == 'linux-64'
   then: gxx
@@ -71,17 +72,26 @@ cxx_compiler_version:
   then: '21'
 - if: target_platform == 'osx-arm64'
   then: '21'
-fftw: '3'
-gnuradio_core: 3.10.12
-libboost_devel: '1.90'
-numpy: '2'
-pyqt: '5.15'
+fftw:
+- '3'
+gnuradio_core:
+- 3.10.12
+libboost_devel:
+- '1.90'
+numpy:
+- '2'
+pyqt:
+- '5.15'
 python:
 - 3.11.* *_cpython
 - 3.12.* *_cpython
 - 3.13.* *_cp313
 - 3.14.* *_cp314
-qt_main: '5.15'
-qwt: '6.2'
-uhd: 4.10.0
-volk: '3.3'
+qt_main:
+- '5.15'
+qwt:
+- '6.2'
+uhd:
+- 4.10.0
+volk:
+- '3.3'

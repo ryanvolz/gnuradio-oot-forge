@@ -46,7 +46,8 @@ c_stdlib_version:
   then: '11.0'
 - if: target_platform == 'osx-arm64'
   then: '11.0'
-channel_targets: gnuradio-oot-forge main
+channel_targets:
+- gnuradio-oot-forge main
 cxx_compiler:
 - if: target_platform == 'linux-64'
   then: gxx
@@ -71,6 +72,9 @@ cxx_compiler_version:
   then: '21'
 - if: target_platform == 'osx-arm64'
   then: '21'
-gnuradio_core: 3.10.12
-libboost_devel: '1.90'
-python_min: '3.11'
+gnuradio_core:
+- 3.10.12
+libboost_devel:
+- '1.90'
+python_min:
+- '3.11'
