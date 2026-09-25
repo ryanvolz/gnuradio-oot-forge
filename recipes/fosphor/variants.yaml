@@ -22,8 +22,6 @@ c_compiler_version:
   then: '21'
 - if: target_platform == 'osx-arm64'
   then: '21'
-- if: target_platform == 'win-64'
-  then: ''
 c_stdlib:
 - if: target_platform == 'linux-64'
   then: sysroot
@@ -48,8 +46,6 @@ c_stdlib_version:
   then: '11.0'
 - if: target_platform == 'osx-arm64'
   then: '11.0'
-- if: target_platform == 'win-64'
-  then: ''
 channel_targets:
 - gnuradio-oot-forge main
 cxx_compiler:
@@ -76,12 +72,11 @@ cxx_compiler_version:
   then: '21'
 - if: target_platform == 'osx-arm64'
   then: '21'
-- if: target_platform == 'win-64'
-  then: ''
 freetype:
 - '2'
 glew:
-- '2.3'
+- if: target_platform == 'win-64'
+  then: '2.3'
 gnuradio_core:
 - 3.10.12
 libboost_devel:
