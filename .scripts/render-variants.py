@@ -103,8 +103,6 @@ def combine_platform_variants(platform_variants):
     unique_keys = set()
     unique_keys.update(*tuple(set(v.keys()) for v in platform_variants.values()))
 
-    num_platforms = len(platform_variants)
-
     combined_variant = {}
     for key in unique_keys:
         platform_vals = {}
@@ -112,7 +110,7 @@ def combine_platform_variants(platform_variants):
             if key in variant:
                 platform_vals[platform] = variant[key]
         unique_vals = set(platform_vals.values())
-        if len(platform_vals) == num_platforms and len(unique_vals) == 1:
+        if len(unique_vals) == 1:
             # all platforms have the same value, so use that
             common_val = unique_vals.pop()
             # wrap string values in single-element list so YAML output is
@@ -121,9 +119,13 @@ def combine_platform_variants(platform_variants):
                 common_val = [common_val]
             combined_variant[key] = common_val
         else:
-            # platforms have different values, or some platforms don't have the key
+            # platforms have different values
             selector_vals = []
-            for k, value in platform_vals.items():
+            for k in platform_variants:
+                # all platforms need to have a value so jinja can be rendered
+                # before recipe is processed, so insert "" for any platforms
+                # that don't currently have a value
+                value = platform_vals.get(k, "")
                 selector_vals.append(
                     {
                         "if": f"target_platform == '{k}'",
@@ -188,10 +190,9 @@ def render_variants(recipe_path, target_platforms, bump_build=False, verbose=Fal
         variants = [m["build_configuration"]["variant"] for m in metadatas]
         output_names = {m["recipe"]["package"]["name"] for m in metadatas}
         extra_ignored_keys = [n.replace("-", "_") for n in output_names]
-        if variants:
-            platform_variants[target_platform] = collapse_variant_matrix(
-                variants, extra_ignored_keys=extra_ignored_keys
-            )
+        platform_variants[target_platform] = collapse_variant_matrix(
+            variants, extra_ignored_keys=extra_ignored_keys
+        )
 
     combined_variant = combine_platform_variants(platform_variants)
     variant_path = recipe_path.parent / "variants.yaml"
