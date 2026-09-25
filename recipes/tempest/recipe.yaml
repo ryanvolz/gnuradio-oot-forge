@@ -56,7 +56,7 @@ requirements:
     - pybind11
     - python
     - volk
-    - # run deps needed in host in order to run tests during build
+    # run deps needed in host in order to run tests during build
     - pillow
     - pyqt *
   run:

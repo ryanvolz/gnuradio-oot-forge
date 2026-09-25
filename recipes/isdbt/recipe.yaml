@@ -96,8 +96,6 @@ tests:
       - if: win
         then: |
           :: Put commands that test the package on Windows below
-    requirements:
-      run:
 
 about:
   homepage: https://github.com/git-artes/gr-isdbt
