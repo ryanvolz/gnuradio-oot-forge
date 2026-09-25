@@ -16,9 +16,6 @@ cmd = [
     "rattler-build",
     "build",
     "--experimental",
-    # HACK: workaround lack of ordering in building directory of recipes,
-    # any recipe specified directly is built first so do gnuradio-foo first
-    "--recipe=recipes/foo/recipe.yaml",
     "--recipe-dir=recipes",
     "--channel=https://prefix.dev/conda-forge",
     "--channel=https://prefix.dev/gnuradio-oot-forge",
