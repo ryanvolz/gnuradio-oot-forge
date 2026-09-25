@@ -72,9 +72,8 @@ cxx_compiler_version:
 - if: target_platform == 'osx-arm64'
   then: '21'
 gnuradio_core: 3.10.12
-libboost_devel: '1.88'
+libboost_devel: '1.90'
 numpy: '2'
-pybind11: 3.0.1
 python:
 - 3.11.* *_cpython
 - 3.12.* *_cpython

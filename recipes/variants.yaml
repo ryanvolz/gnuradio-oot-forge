@@ -1,25 +1,14 @@
 channel_targets:
   - gnuradio-oot-forge main
 
-# Avoid pybind11 3.0.2 due to bug with static cast where dynamic is needed:
-# https://github.com/pybind/pybind11/issues/5989
-pybind11:
-  - 3.0.1
-
 # Pin to Qwt version that is built with Qt5, because gnuradio uses Qt5
 qwt:
   - 6.2
 
-# Pin boost to 1.88 because gnuradio rebuilt with qwt 6.2 was build with boost 1.88
+# conda-forge boost migration is slow, all relevant packages are 1.90 now
 libboost_devel:
-  - 1.88
+  - 1.90
 libboost_headers:
-  - 1.88
+  - 1.90
 libboost_python_devel:
-  - 1.88
-
-# Pin fmt and spdlog to latest so volk 3.3 is usable
-fmt:
-  - 12.1
-spdlog:
-  - 1.17
+  - 1.90
