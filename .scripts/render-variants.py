@@ -139,59 +139,74 @@ def render_variants(recipe_path, target_platforms, bump_build=False, verbose=Fal
     """Render variants for recipe from conda-forge-pinning and local file."""
     print(f"Rendering variants for: {recipe_path}")
 
-    base_run_args = [
-        "rattler-build",
-        "build",
-        # "--experimental",
-        "--render-only",
-        "--recipe",
-        str(recipe_path),
-        "--ignore-recipe-variants",
-        "--variant-config",
-        str(Path(os.environ["CONDA_PREFIX"]) / "conda_build_config.yaml"),
-    ]
-    if not verbose:
-        base_run_args.insert(1, "--quiet")
-    global_variants = recipe_path.parent.parent / "variants.yaml"
-    if global_variants.exists():
-        base_run_args.extend(
-            [
-                "--variant-config",
-                str(global_variants),
-            ]
-        )
-    recipe_variants = recipe_path.parent / "recipe_variants.yaml"
-    if recipe_variants.exists():
-        base_run_args.extend(
-            [
-                "--variant-config",
-                str(recipe_variants),
-            ]
-        )
-    platform_variants = {}
-    for target_platform in target_platforms:
-        run_args = base_run_args + [
-            # don't want build platform to change depending on where this
-            # script is run, so just set it to match target platform
-            "--build-platform",
-            target_platform,
-            "--target-platform",
-            target_platform,
+    # Rewrite recipe to not include any skips, so that we render for all platforms
+    # This ensures that the variant files are fully defined, and allows
+    # rattler-build to evaluate jinja expressions correctly before building (or not)
+    with open(recipe_path) as f:
+        recipe = yaml.safe_load(f)
+    if "skip" in recipe["build"]:
+        del recipe["build"]["skip"]
+
+    with tempfile.NamedTemporaryFile(
+        mode="w+", encoding="utf-8", delete_on_close=False
+    ) as tmp_recipe_file:
+        yaml.safe_dump(recipe, tmp_recipe_file)
+        tmp_recipe_file.close()
+
+        # Now run the rattler-build rendering on the modified recipe
+        base_run_args = [
+            "rattler-build",
+            "build",
+            # "--experimental",
+            "--render-only",
+            "--recipe",
+            str(tmp_recipe_file.name),
+            "--ignore-recipe-variants",
+            "--variant-config",
+            str(Path(os.environ["CONDA_PREFIX"]) / "conda_build_config.yaml"),
         ]
-        with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as outfile:
-            subprocess.run(run_args, check=True, stdout=outfile, env=os.environ)
-            outfile.seek(0)
-            content = outfile.read()
-            metadatas = json.loads(content)
-        if not isinstance(metadatas, list):
-            metadatas = [metadatas]
-        variants = [m["build_configuration"]["variant"] for m in metadatas]
-        output_names = {m["recipe"]["package"]["name"] for m in metadatas}
-        extra_ignored_keys = [n.replace("-", "_") for n in output_names]
-        if variants:
-            platform_variants[target_platform] = collapse_variant_matrix(
-                variants, extra_ignored_keys=extra_ignored_keys
+        if not verbose:
+            base_run_args.insert(1, "--quiet")
+        global_variants = recipe_path.parent.parent / "variants.yaml"
+        if global_variants.exists():
+            base_run_args.extend(
+                [
+                    "--variant-config",
+                    str(global_variants),
+                ]
             )
+        recipe_variants = recipe_path.parent / "recipe_variants.yaml"
+        if recipe_variants.exists():
+            base_run_args.extend(
+                [
+                    "--variant-config",
+                    str(recipe_variants),
+                ]
+            )
+        platform_variants = {}
+        for target_platform in target_platforms:
+            run_args = base_run_args + [
+                # don't want build platform to change depending on where this
+                # script is run, so just set it to match target platform
+                "--build-platform",
+                target_platform,
+                "--target-platform",
+                target_platform,
+            ]
+            with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as outfile:
+                subprocess.run(run_args, check=True, stdout=outfile, env=os.environ)
+                outfile.seek(0)
+                content = outfile.read()
+                metadatas = json.loads(content)
+            if not isinstance(metadatas, list):
+                metadatas = [metadatas]
+            variants = [m["build_configuration"]["variant"] for m in metadatas]
+            output_names = {m["recipe"]["package"]["name"] for m in metadatas}
+            extra_ignored_keys = [n.replace("-", "_") for n in output_names]
+            if variants:
+                platform_variants[target_platform] = collapse_variant_matrix(
+                    variants, extra_ignored_keys=extra_ignored_keys
+                )
 
     combined_variant = combine_platform_variants(platform_variants)
     variant_path = recipe_path.parent / "variants.yaml"

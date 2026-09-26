@@ -9,6 +9,8 @@ c_compiler:
   then: clang
 - if: target_platform == 'osx-arm64'
   then: clang
+- if: target_platform == 'win-64'
+  then: vs2022
 c_compiler_version:
 - if: target_platform == 'linux-64'
   then: '15'
@@ -31,6 +33,8 @@ c_stdlib:
   then: macosx_deployment_target
 - if: target_platform == 'osx-arm64'
   then: macosx_deployment_target
+- if: target_platform == 'win-64'
+  then: vs
 c_stdlib_version:
 - if: target_platform == 'linux-64'
   then: '2.17'
@@ -55,6 +59,8 @@ cxx_compiler:
   then: clangxx
 - if: target_platform == 'osx-arm64'
   then: clangxx
+- if: target_platform == 'win-64'
+  then: vs2022
 cxx_compiler_version:
 - if: target_platform == 'linux-64'
   then: '15'
