@@ -89,13 +89,6 @@ tests:
         - ${{ "Library/" if win }}share/gnuradio/grc/blocks/isdbt_byte_interleaver.block.yml
         - ${{ "Library/" if win }}share/gnuradio/grc/blocks/isdbt_energy_dispersal.block.yml
         - ${{ "Library/" if win }}share/gnuradio/grc/blocks/isdbt_subset_of_carriers.block.yml
-  - script:
-      - if: unix
-        then: |
-          # Put commands that test the package on Linux or macOS below
-      - if: win
-        then: |
-          :: Put commands that test the package on Windows below
 
 about:
   homepage: https://github.com/git-artes/gr-isdbt
